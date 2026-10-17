@@ -10,6 +10,7 @@ The owner's long-term memory lives in a git repo at `$SELFOS_HOME`
 
 ## Every session
 1. Read `$SELFOS_HOME/vault/INDEX.md`, `vault/profile/identity.md`, `vault/profile/preferences.md`.
+   If `vault/` doesn't exist, run `python3 $SELFOS_HOME/tools/selfos.py init --git` and ask the owner to fill in their profile.
 2. Follow preferences for the rest of the session.
 
 ## Useful commands
@@ -22,8 +23,9 @@ python3 $SELFOS_HOME/tools/selfos.py validate
 
 ## Writing
 - Follow AGENTS.md: one subject per file, `[stated]` tags, update instead of duplicate.
-- After writing, commit: `cd $SELFOS_HOME && git add -A && git commit -m "memory: <what changed>"`.
-  Push only if the owner has enabled it.
+- After writing, commit **in the vault repo, never the framework repo**:
+  `git -C $SELFOS_HOME/vault add -A && git -C $SELFOS_HOME/vault commit -m "memory: <what changed>"`.
+  Push only if the owner has set up a private remote and enabled it.
 
 ## Daily heartbeat (optional)
 When run on a schedule: check `birthdays 7` and `goals`. Message the owner only if something

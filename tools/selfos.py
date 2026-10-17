@@ -2,25 +2,32 @@
 """self.os CLI — validate, index, and query the vault. Stdlib only.
 
 Usage:
-  selfos.py validate
+  selfos.py [--vault PATH] init [--git]
+  selfos.py [--vault PATH] validate
   selfos.py index
   selfos.py birthdays [DAYS]
   selfos.py goals [--all]
   selfos.py bundle [--include journal]
 
-The vault location is $SELFOS_HOME/vault, or ../vault relative to this file.
+Vault resolution (first match wins):
+  --vault PATH  ->  $SELFOS_VAULT  ->  <repo>/vault
+
+<repo>/vault is git-ignored: it holds YOUR data and never goes into the framework repo.
 """
 from __future__ import annotations
 
 import os
 import re
+import shutil
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from pathlib import Path
 
-ROOT = Path(os.environ.get("SELFOS_HOME", Path(__file__).resolve().parent.parent))
-VAULT = ROOT / "vault"
+ROOT = Path(__file__).resolve().parent.parent
+TEMPLATE = ROOT / "template"
+VAULT = Path(os.environ.get("SELFOS_VAULT", ROOT / "vault")).expanduser()
 
 REQUIRED = {
     "_all": ["type", "title", "description", "updated"],
@@ -97,7 +104,27 @@ def load(include_templates: bool = False) -> list[Doc]:
 
 # ---------- commands ----------
 
+def cmd_init(args) -> int:
+    if VAULT.exists() and any(VAULT.iterdir()):
+        print(f"Vault already exists at {VAULT} — leaving it alone.")
+        return 0
+    shutil.copytree(TEMPLATE, VAULT, dirs_exist_ok=True)
+    today = date.today().isoformat()
+    for p in (VAULT / "profile").glob("*.md"):
+        p.write_text(p.read_text(encoding="utf-8").replace("YYYY-MM-DD", today), encoding="utf-8")
+    print(f"Created vault at {VAULT}")
+    if "--git" in args:
+        subprocess.run(["git", "init", "-q"], cwd=VAULT, check=True)
+        print("Initialized a separate git repo inside the vault for your private history.")
+        print("Point it at a PRIVATE remote:  git -C vault remote add origin <private-repo-url>")
+    cmd_index([])
+    print(f"Next: fill in {VAULT / 'profile' / 'identity.md'} and preferences.md")
+    return 0
+
 def cmd_validate(_args) -> int:
+    if not VAULT.exists():
+        print(f"No vault at {VAULT}. Run: python tools/selfos.py init")
+        return 1
     errors = []
     for d in load():
         m = d.meta
@@ -207,6 +234,7 @@ def cmd_bundle(args) -> int:
 
 
 COMMANDS = {
+    "init": cmd_init,
     "validate": cmd_validate,
     "index": cmd_index,
     "birthdays": cmd_birthdays,
@@ -216,6 +244,10 @@ COMMANDS = {
 
 
 def main(argv: list[str]) -> int:
+    global VAULT
+    if len(argv) >= 2 and argv[0] == "--vault":
+        VAULT = Path(argv[1]).expanduser().resolve()
+        argv = argv[2:]
     if not argv or argv[0] not in COMMANDS:
         print(__doc__)
         return 2

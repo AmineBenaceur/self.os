@@ -1,34 +1,35 @@
 # OpenClaw adapter
 
-Gets your OpenClaw agent (on the Pi) reading and writing self.os.
+Gets an OpenClaw agent reading and writing a self.os vault.
 
 ## Setup
 
 ```bash
-# on the Pi
-git clone git@github.com:AmineBenaceur/self.os.git ~/self.os
+# on the machine running OpenClaw
+git clone https://github.com/AmineBenaceur/self.os.git ~/self.os
+cd ~/self.os && python3 tools/selfos.py init --git
 echo 'export SELFOS_HOME=~/self.os' >> ~/.bashrc
 
-# install the skill into the OpenClaw workspace
+# install the skill into your OpenClaw workspace (adjust path if yours differs)
 cp -r ~/self.os/adapters/openclaw/skills/self-os ~/.openclaw/workspace/skills/
 ```
 
-Adjust the workspace path if yours differs. Then add the snippet below to your workspace
-`AGENTS.md` (or `USER.md`) so the agent loads self.os every session instead of relying
-on OpenClaw's built-in `MEMORY.md`:
+Then add this to your workspace `AGENTS.md` (or `USER.md`) so the agent uses self.os
+for durable memory instead of OpenClaw's built-in `MEMORY.md`:
 
 ```markdown
 ## Long-term memory
-Your long-term memory about me is the self.os vault at $SELFOS_HOME.
+Your long-term memory about me is the self.os vault at $SELFOS_HOME/vault.
 Use the `self-os` skill. Prefer it over MEMORY.md for anything durable.
 ```
 
 ## Heartbeat
 
-To get birthday and goal check-in nudges, add a line to your `HEARTBEAT.md`
-(or a cron job) telling the agent to run the skill's "Daily heartbeat" section once a day.
+For birthday and goal check-in nudges, add a line to `HEARTBEAT.md` (or a cron job)
+telling the agent to run the skill's "Daily heartbeat" section once a day.
 
 ## Sync
 
-The Pi is the only writer by default. Pull on other machines; if you edit from elsewhere,
-have the agent `git pull --rebase` before writing.
+The vault is its own git repo (from `init --git`). Push it to a **private** remote to back
+it up or share it across machines. The framework repo at `~/self.os` can be updated with
+`git pull` without touching your data.

@@ -1,5 +1,16 @@
+# Your personal vault — never committed to the framework repo.
+# (Run `selfos init --git` to version it in its own private repo instead.)
+/vault/
+*.vault/
+
+# Generated context bundles may contain personal data
+ctx.md
+*.bundle.md
+
+# Local env / tooling
+.env
 __pycache__/
 *.pyc
-.env
-ctx.md
+.venv/
 .DS_Store
+Thumbs.db
