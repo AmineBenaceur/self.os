@@ -2,6 +2,8 @@
 type: profile
 title: Preferences
 description: How assistants should behave with the owner — tone, format, boundaries
+max_active_goals: 3
+review_day: sunday
 updated: YYYY-MM-DD
 ---
 # Preferences

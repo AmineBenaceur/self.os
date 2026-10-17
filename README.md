@@ -1,11 +1,23 @@
 # self.os
 
-**A portable, plain-text goals and memory framework for AI assistants.**
+**Turn any AI assistant into a goal coach that actually helps you follow through.**
 
-self.os gives any AI agent a shared, structured place to keep what it knows about you:
-who you are, how you want it to behave, the goals you're working toward, the people in your
-life, and your ongoing projects. Everything is Markdown with a little YAML frontmatter, so
-it's diffable, greppable, and readable by any model or runtime.
+self.os is a plain-text framework your agents share: your goals, the habits that drive them,
+your reasons, your plans for when things go wrong, plus the context a good assistant needs
+(who you are, how you like to work, the people in your life). It's Markdown with a little
+YAML frontmatter, so it's diffable, greppable, and readable by any model or runtime.
+
+It's built around what research on goal pursuit consistently supports, rather than a to-do list:
+
+| Practice | In self.os |
+|---|---|
+| Specific if-then plans ("When X, I'll do Y") | `## Plan` in every goal; agents remind at the cue |
+| Planning for obstacles up front | `## Obstacles` as "If <obstacle>, then <response>" |
+| Tracking measurable progress | `metric`/`baseline`/`target` + `value=` check-ins → pace |
+| Outcomes driven by habits | `habits/` linked to goals, with a minimum version for bad days |
+| Regular review and re-planning | `selfos review` builds a weekly review with questions |
+| Focus | Soft cap on active goals; agents ask what a new goal replaces |
+| Supportive accountability | Agents ask what got in the way and adjust the plan, never shame |
 
 The framework is public. **Your data never is.** Your vault lives in a git-ignored `vault/`
 folder (or anywhere you point `SELFOS_VAULT`), and can be versioned in its own private repo.
@@ -38,7 +50,9 @@ self.os/                  ← this repo (public framework)
 └── vault/                ← YOUR data · git-ignored · optionally its own private repo
     ├── INDEX.md          ← generated map of the vault
     ├── profile/          ← identity.md, preferences.md
-    ├── goals/            ← one file per goal, with check-in log
+    ├── goals/            ← one file per goal: why, plan, obstacles, metric, log
+    ├── habits/           ← repeatable actions linked to goals
+    ├── reviews/          ← weekly reviews written by `selfos review --write`
     ├── people/           ← one file per person, birthdays in frontmatter
     ├── areas/            ← ongoing projects and responsibilities
     └── journal/          ← dated, append-only log
@@ -52,33 +66,58 @@ self.os/                  ← this repo (public framework)
 4. **The owner stays in control.** Facts are tagged `[stated]` (owner said it) or
    `[inferred]` (agent's guess) so you can always tell them apart.
 
+## The coaching loop
+
+1. **Set**: the agent walks you through why, what done looks like, a metric (if any),
+   an if-then plan, likely obstacles, and the habit that drives it.
+2. **Do**: the agent nudges at the habit's cue and logs `done` or `missed — <reason>`.
+3. **Check in**: at the goal's cadence it asks for the number and compares it to pace.
+   When you're behind, it asks what got in the way and offers one adjustment.
+4. **Review**: weekly, `selfos review` summarizes goals, habits, what's coming up, and
+   the questions worth answering. You re-plan; the agent updates the files.
+
+The full agent protocol is in [`AGENTS.md`](AGENTS.md#coaching).
+
 ## A goal file
 
 ```markdown
 ---
 type: goal
 title: Run a half marathon
-description: Finish a 21.1 km race this spring
+description: Finish the Calgary half marathon in under 2:15
 status: active
-horizon: quarter
-target_date: 2027-05-31
+start_date: 2026-09-28
+target_date: 2027-05-30
 checkin_every_days: 7
+metric: weekly distance
+unit: km
+baseline: 8
+target: 40
 updated: 2026-10-16
 ---
-# Run a half marathon
-
 ## Why
-- Want a concrete fitness target for the spring [stated]
+- I want proof I can commit to something hard outside work [stated]
 
-## Next actions
-- [ ] Pick a race and register
+## Plan
+- When my alarm goes off Tue/Thu/Sat at 6:00, I put on the clothes I laid out and go. [stated]
+
+## Obstacles
+- If it's below -15°C, then I run on the treadmill instead. [stated]
 
 ## Log
-- 2026-10-16: Created goal [stated]
+- 2026-10-12: value=14 skipped Saturday, cold [stated]
 ```
 
-Agents append to `## Log` on each check-in; `selfos goals` flags any goal whose last log
-entry is older than `checkin_every_days`.
+```
+$ selfos goals
+    Run a half marathon [active]
+      progress: 14/40 km · 19% · on pace
+      4d since check-in · target 2027-05-30
+      habit: Run 3x per week: 2/3 this week, 100% of last 4 weeks, streak 2
+```
+
+See [`examples/vault/`](examples/vault) for a complete vault with a goal, a habit, a paused
+goal, and a person.
 
 ## CLI
 
@@ -86,7 +125,9 @@ entry is older than `checkin_every_days`.
 python tools/selfos.py init [--git]       # create vault from template (optionally as its own repo)
 python tools/selfos.py validate           # check frontmatter across the vault
 python tools/selfos.py index              # regenerate vault/INDEX.md
-python tools/selfos.py goals [--all]      # active goals; DUE = needs a check-in
+python tools/selfos.py goals [--all]      # goals with pace, check-in status, linked habits
+python tools/selfos.py habits             # this week's habit progress, streaks, last miss
+python tools/selfos.py review [--write]   # weekly review; --write saves to vault/reviews/
 python tools/selfos.py birthdays [DAYS]   # upcoming birthdays (default 30 days)
 python tools/selfos.py bundle             # whole vault as one file, for models without file access
 

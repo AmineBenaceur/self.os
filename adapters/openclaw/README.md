@@ -26,7 +26,7 @@ Use the `self-os` skill. Prefer it over MEMORY.md for anything durable.
 ## Heartbeat
 
 For birthday and goal check-in nudges, add a line to `HEARTBEAT.md` (or a cron job)
-telling the agent to run the skill's "Daily heartbeat" section once a day.
+telling the agent to run the skill's "Heartbeat" section daily (habit nudges, check-ins, birthdays) and weekly (review).
 
 ## Sync
 

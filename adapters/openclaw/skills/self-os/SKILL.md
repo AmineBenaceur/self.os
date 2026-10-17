@@ -16,7 +16,9 @@ The owner's long-term memory lives in a git repo at `$SELFOS_HOME`
 ## Useful commands
 ```bash
 python3 $SELFOS_HOME/tools/selfos.py birthdays 14   # upcoming birthdays
-python3 $SELFOS_HOME/tools/selfos.py goals          # active goals; DUE = needs a check-in
+python3 $SELFOS_HOME/tools/selfos.py goals          # pace + check-ins; DUE = needs a check-in
+python3 $SELFOS_HOME/tools/selfos.py habits         # habit progress this week, streaks, last miss
+python3 $SELFOS_HOME/tools/selfos.py review --write # weekly review into vault/reviews/
 python3 $SELFOS_HOME/tools/selfos.py index          # run after any write
 python3 $SELFOS_HOME/tools/selfos.py validate
 ```
@@ -27,6 +29,14 @@ python3 $SELFOS_HOME/tools/selfos.py validate
   `git -C $SELFOS_HOME/vault add -A && git -C $SELFOS_HOME/vault commit -m "memory: <what changed>"`.
   Push only if the owner has set up a private remote and enabled it.
 
-## Daily heartbeat (optional)
-When run on a schedule: check `birthdays 7` and `goals`. Message the owner only if something
-is due, with one short line per item.
+## Coaching
+Follow the **Coaching** section of AGENTS.md when setting goals, checking in, and reviewing.
+Short version: if-then plans and obstacles up front; ask for numbers; after a miss, ask
+what got in the way and offer one adjustment; never shame; pausing is allowed.
+
+## Heartbeat (run on a schedule)
+- **Daily:** run `habits` and `goals`. Message the owner only for (a) a habit whose cue is
+  today and isn't done yet, (b) a goal that's `DUE` for a check-in, or (c) `birthdays 7`.
+  One short line per item, at most three items.
+- **Weekly** on the owner's `review_day`: run `review --write` and start the review
+  conversation with their wins.
