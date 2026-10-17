@@ -1,35 +1,71 @@
 # OpenClaw adapter
 
-Gets an OpenClaw agent reading and writing a self.os vault.
+Turns your OpenClaw agent into a goal coach with long-term memory, backed by a self.os vault.
+Works well on a Raspberry Pi: it's pure Python 3.10+, no other dependencies.
 
-## Setup
+## 1. Install selfos
+
+On the machine running OpenClaw:
 
 ```bash
-# on the machine running OpenClaw
-git clone https://github.com/AmineBenaceur/self.os.git ~/self.os
-cd ~/self.os && python3 tools/selfos.py init --git
-echo 'export SELFOS_HOME=~/self.os' >> ~/.bashrc
+# with uv (recommended)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv tool install git+https://github.com/AmineBenaceur/self.os
 
-# install the skill into your OpenClaw workspace (adjust path if yours differs)
-cp -r ~/self.os/adapters/openclaw/skills/self-os ~/.openclaw/workspace/skills/
+# or with pipx
+pipx install git+https://github.com/AmineBenaceur/self.os
+
+selfos init --git      # creates ~/.selfos/vault as its own private git repo
 ```
 
-Then add this to your workspace `AGENTS.md` (or `USER.md`) so the agent uses self.os
-for durable memory instead of OpenClaw's built-in `MEMORY.md`:
+Make sure the `selfos` command is on the PATH that OpenClaw uses (`which selfos`). To keep the
+vault somewhere else, set `SELFOS_VAULT` in OpenClaw's environment.
+
+## 2. Install the skill
+
+Copy the skill folder into your OpenClaw workspace's `skills/` directory:
+
+```bash
+git clone --depth 1 https://github.com/AmineBenaceur/self.os /tmp/self.os
+cp -r /tmp/self.os/adapters/openclaw/skills/self-os ~/.openclaw/workspace/skills/
+```
+
+(Adjust the workspace path if yours differs.) Restart the gateway or start a new session so
+the skill is picked up.
+
+## 3. Point the agent at it
+
+Add to your workspace `AGENTS.md` (or `USER.md`):
 
 ```markdown
-## Long-term memory
-Your long-term memory about me is the self.os vault at $SELFOS_HOME/vault.
-Use the `self-os` skill. Prefer it over MEMORY.md for anything durable.
+## Goals and long-term memory
+My goals, habits, people and preferences live in self.os. Use the `self-os` skill: run
+`selfos context` at the start of conversations, and record durable facts with `selfos` commands
+rather than MEMORY.md.
 ```
 
-## Heartbeat
+## 4. Nudges (heartbeat)
 
-For birthday and goal check-in nudges, add a line to `HEARTBEAT.md` (or a cron job)
-telling the agent to run the skill's "Heartbeat" section daily (habit nudges, check-ins, birthdays) and weekly (review).
+Add to `HEARTBEAT.md`:
 
-## Sync
+```markdown
+- Follow the Heartbeat section of the self-os skill (habit nudges, due check-ins, birthdays;
+  weekly review on my review day). Say nothing if nothing is due.
+```
 
-The vault is its own git repo (from `init --git`). Push it to a **private** remote to back
-it up or share it across machines. The framework repo at `~/self.os` can be updated with
-`git pull` without touching your data.
+## Try it
+
+Message your agent: *"Help me set a goal."* It should ask why, what done looks like, an if-then
+plan and likely obstacles before creating anything. Then try *"I skipped my run today, it was
+too cold"* and check it logs the miss with the reason and offers one adjustment.
+
+## Back up the vault
+
+`selfos init --git` made the vault a git repo. Add a **private** remote to back it up:
+
+```bash
+git -C ~/.selfos/vault remote add origin git@github.com:<you>/my-vault.git
+git -C ~/.selfos/vault push -u origin main
+```
+
+Update self.os itself any time with `uv tool upgrade selfos` (or `pipx upgrade selfos`). Your vault is untouched.

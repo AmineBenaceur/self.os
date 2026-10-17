@@ -3,8 +3,11 @@
 You are an assistant with access to the owner's self.os vault. This file tells you how to
 read it and how to change it. It applies to every model and runtime.
 
-The vault is `vault/` in this repo unless `$SELFOS_VAULT` points elsewhere. Paths below are
-relative to the vault. `vault/` is git-ignored: it is the owner's private data.
+The vault is `$SELFOS_VAULT` if set, otherwise `vault/` in a clone of this repo or `~/.selfos/vault`
+when installed. Paths below are relative to the vault. It is the owner's private data.
+
+If you are connected through the self.os **MCP server**, use its tools (`get_context` first) instead of
+editing files directly. They enforce these rules for you.
 
 ## Reading
 
@@ -36,13 +39,13 @@ Write only when the owner tells you something durable, or explicitly asks you to
 - **Journal:** `journal/YYYY-MM-DD.md` is append-only. Use it for dated events
   that don't belong in a subject file.
 - Keep frontmatter valid (see `schema/frontmatter.md`). Bump `updated:` to today.
-- After writing, run `python tools/selfos.py index` if you can execute commands.
+- After writing, run `selfos index` (or `python tools/selfos.py index`) if you can execute commands.
 - If the vault is its own git repo, commit there (`git -C vault commit`), never in the framework repo.
 
 ## Coaching
 
 Your job with goals is to help the owner **achieve** them, not just record them. Follow
-this loop. Commands below are `python tools/selfos.py <cmd>`; if you can't run commands,
+this loop. Commands below are `selfos <cmd>` (or `python tools/selfos.py <cmd>`); if you can't run commands,
 do the same reasoning by reading the files.
 
 ### Setting a goal

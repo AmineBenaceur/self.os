@@ -1,0 +1,27 @@
+# self.os
+
+> A plain-text goal-coaching vault for AI assistants, with a CLI and an MCP server. Agents use it to help a person set goals with if-then plans and obstacles, track habits and measurable progress, run weekly reviews, and remember durable context about the person. Stdlib-only Python, MIT licensed. Data stays on the user's machine.
+
+If you are an AI agent with access to a user's self.os vault, read AGENTS.md before doing anything else. It is the contract for reading and writing the vault and for how to coach.
+
+## Use it
+
+- [README](README.md): what it is, install (`uvx --from git+https://github.com/AmineBenaceur/self.os selfos init`), MCP setup for Claude Code, Claude Desktop, Cursor and others
+- [AGENTS.md](AGENTS.md): the agent contract: reading, writing, coaching protocol, privacy rules
+- [MCP server](selfos/mcp_server.py): tools `get_context`, `create_goal`, `log_goal_checkin`, `update_goal`, `create_habit`, `log_habit`, `weekly_review`, `add_note`, `read_file`, `search`, `upcoming_birthdays`, `validate`, `init_vault`; prompts `coach`, `set-goal`, `check-in`, `weekly-review`
+
+## Format
+
+- [Frontmatter schema](schema/frontmatter.md): every field for goals, habits, people, areas, journal, reviews
+- [Example vault](examples/vault/): a complete fictional vault
+- [Templates](template/): what `selfos init` copies
+
+## CLI for shell-based agents
+
+`selfos context` (JSON state), `selfos checkin`, `selfos log-habit`, `selfos note`, and `selfos tool <name> '<json>'` to call any MCP tool from a shell.
+
+## Adapters
+
+- [OpenClaw skill](adapters/openclaw/skills/self-os/SKILL.md)
+- [Claude](adapters/claude/CLAUDE.md)
+- [Generic system prompt](adapters/generic/system-prompt.md)
